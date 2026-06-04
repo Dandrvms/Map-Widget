@@ -12,6 +12,7 @@ public class MapDescriptor extends WidgetDescriptor {
 
     public MapDescriptor(){
         super(MapWidget.WIDGET_TYPE, WidgetCategory.MONITOR, "Map","", "Mapa con marcadores");
+        System.out.println(">>> MapDescriptor loaded for type: " + MapWidget.WIDGET_TYPE);
     }
     
     @Override

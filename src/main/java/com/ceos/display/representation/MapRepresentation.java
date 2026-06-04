@@ -14,4 +14,22 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
     protected MapNode createJFXNode() throws Exception {
        return new MapNode(); 
     }
+    
+    @Override
+    public void registerListeners(){
+        super.registerListeners();
+        final MapWidget model = (MapWidget) model_widget;
+        final MapNode node = (MapNode) jfx_node;
+        
+        
+        model.propWidth().addUntypedPropertyListener((prop, old, val) -> {
+            node.setPrefWidth(((Number) val).doubleValue());
+        });
+        
+        model.propHeight().addUntypedPropertyListener((prop, old, val) -> {
+            node.setPrefHeight(((Number) val).doubleValue());
+        });
+        
+        node.setPrefSize(model.propWidth().getValue().doubleValue(), model.propHeight().getValue().doubleValue());
+    }
 }

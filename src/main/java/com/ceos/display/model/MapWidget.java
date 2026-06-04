@@ -1,6 +1,8 @@
 package com.ceos.display.model;
 
+import java.util.List;
 import org.csstudio.display.builder.model.Widget;
+import org.csstudio.display.builder.model.WidgetProperty;
 
 /**
  *
@@ -11,5 +13,10 @@ public class MapWidget extends Widget {
     
     public MapWidget(){
         super(WIDGET_TYPE);
+    }
+    
+    @Override
+    protected void defineProperties(final List<WidgetProperty<?>> properties) {
+        super.defineProperties(properties);
     }
 }
