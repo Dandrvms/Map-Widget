@@ -27,19 +27,14 @@
  */
 package com.ceos.display.ui;
 
-import com.gluonhq.attach.util.Platform;
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
-import javafx.geometry.Pos;
-import javafx.scene.Group;
-import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
+
 import java.util.logging.Logger;
 
 public class MapNode extends StackPane {
@@ -47,16 +42,17 @@ public class MapNode extends StackPane {
     private static final Logger LOGGER = Logger.getLogger(MapNode.class.getName());
 
     static {
-
-        Logger gluonLogger = Logger.getLogger("com.gluonhq");
-        gluonLogger.setLevel(Level.SEVERE);
-
-        try {
-            if (MapNode.class.getResourceAsStream("/logging.properties") != null) {
-                LogManager.getLogManager().readConfiguration(MapNode.class.getResourceAsStream("/logging.properties"));
+        // Aggressively silence all Gluon and related logging
+        String[] loggers = {"com.gluonhq", "com.gluonhq.maps", "com.gluonhq.impl.maps"};
+        for (String l : loggers) {
+            Logger logger = Logger.getLogger(l);
+            logger.setLevel(Level.OFF);
+            for (java.util.logging.Handler handler : Logger.getLogger("").getHandlers()) {
+                if (handler instanceof java.util.logging.ConsoleHandler) {
+                    // This might be too aggressive, but console logging is the enemy of performance
+                    // handler.setLevel(Level.WARNING); 
+                }
             }
-        } catch (IOException e) {
-
         }
     }
 
@@ -65,6 +61,8 @@ public class MapNode extends StackPane {
 
     public MapNode() {
         this.setPickOnBounds(true);
+        this.setPrefSize(400, 400);
+
         view = new MapView();
         markerLayer = new PoiLayer();
         view.addLayer(markerLayer);
@@ -97,7 +95,7 @@ public class MapNode extends StackPane {
 
         circle.setOnMouseClicked(e -> {
             if (e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-//                view.flyTo(1.0, point, view.getZoom() + 20);
+    //                view.flyTo(1.0, point, view.getZoom() + 20);
                 view.setCenter(point);
                 view.setZoom(15);
                 e.consume();
@@ -105,14 +103,6 @@ public class MapNode extends StackPane {
         });
 
         markerLayer.addPoint(point, circle);
-    }
-
-    @Override
-    protected void layoutChildren() {
-        super.layoutChildren();
-        if (view != null) {
-            view.resizeRelocate(0, 0, getWidth(), getHeight());
-        }
     }
 
     private static class PoiLayer extends com.gluonhq.maps.MapLayer {
@@ -128,6 +118,7 @@ public class MapNode extends StackPane {
 
         @Override
         protected void layoutLayer() {
+            if (points.isEmpty()) return;
             for (Pair<MapPoint, javafx.scene.Node> candidate : points) {
                 MapPoint point = candidate.getKey();
                 javafx.scene.Node icon = candidate.getValue();

@@ -27,7 +27,7 @@ public class MapDescriptor extends WidgetDescriptor {
     
     @Override
     public String getName(){
-        return "Map.";
+        return "Map";
     }
     
     @Override

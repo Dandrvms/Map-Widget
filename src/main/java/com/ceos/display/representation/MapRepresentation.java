@@ -16,11 +16,18 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
     }
     
     @Override
+    public void updateChanges() {
+        super.updateChanges();
+        final MapWidget model = model_widget;
+        final MapNode node = jfx_node;
+        node.setPrefSize(model.propWidth().getValue(), model.propHeight().getValue());
+    }
+
+    @Override
     public void registerListeners(){
         super.registerListeners();
-        final MapWidget model = (MapWidget) model_widget;
-        final MapNode node = (MapNode) jfx_node;
-        
+        final MapWidget model = model_widget;
+        final MapNode node = jfx_node;
         
         model.propWidth().addUntypedPropertyListener((prop, old, val) -> {
             node.setPrefWidth(((Number) val).doubleValue());
