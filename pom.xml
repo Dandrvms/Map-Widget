@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ceos</groupId>
-    <artifactId>widget-suite</artifactId>
+    <artifactId>Map-Widget</artifactId>
     <version>0.13.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
@@ -10,7 +10,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <javafx.version>21.0.3</javafx.version>
     </properties>
-    <name>widget-suite</name>
+    <name>Map-Widget</name>
     <dependencies>
         <!-- JavaFX dependencies -->
         <dependency>
@@ -63,7 +63,13 @@
             <groupId>com.gluonhq</groupId>
             <artifactId>maps</artifactId>
             <version>2.0.0-ea+6</version>
-        </dependency>  
+        </dependency>
+        <dependency>
+            <groupId>org.phoebus</groupId>
+            <artifactId>app-display-runtime</artifactId>
+            <version>5.0.5</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -111,7 +117,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.ceos.display.ui.NewClass</mainClass>
+                    <mainClass>com.ceos.display.ui.MapSample</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ceos.display.ui;
 
 import javafx.application.Application;
@@ -11,9 +7,11 @@ import javafx.stage.Stage;
 
 /**
  *
- * @author Starblend
+ * @author Daniel
+ * 
+ * Launch a Standalone app
  */
-public class NewClass extends Application {
+public class MapSample extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {

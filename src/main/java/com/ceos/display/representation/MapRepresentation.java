@@ -7,12 +7,15 @@ import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseReprese
 /**
  *
  * @author Daniel
+ * 
+ * Returns the actual javafx node for phoebus
+ * 
  */
 public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>  {
     
     @Override
     protected MapNode createJFXNode() throws Exception {
-       return new MapNode(); 
+       return new MapNode(model_widget); 
     }
     
     @Override

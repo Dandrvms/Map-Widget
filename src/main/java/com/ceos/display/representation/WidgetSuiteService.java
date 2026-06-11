@@ -11,12 +11,14 @@ import org.csstudio.display.builder.representation.spi.WidgetRepresentationsServ
 /**
  *
  * @author Daniel
+ * 
+ * Register the widget representation factory for maps.
+ * For some reason, the overwritten code is ignored
+ * so I put the static block.
+ * 
  */
 public class WidgetSuiteService implements WidgetRepresentationsService {
     static {
-        System.out.println("###################################");
-        System.out.println("#    Cargando Suite de Widgets    #");
-        System.out.println("###################################");
         WidgetFactory factory = WidgetFactory.getInstance();
         factory.addWidgetType(new MapDescriptor());
     }

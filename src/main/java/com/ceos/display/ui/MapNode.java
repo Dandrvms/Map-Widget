@@ -29,27 +29,43 @@ package com.ceos.display.ui;
 
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
+import java.util.HashMap;
+import java.util.Map;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 
 import java.util.logging.Level;
 
 import java.util.logging.Logger;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseButton;
+import org.csstudio.display.builder.model.Widget;
+
+/**
+ * 
+ * @author Daniel
+ * 
+ * JavaFX Node that contains the map
+ * 
+ */
+
 
 public class MapNode extends StackPane {
+
+    private final int maxZoom;
+    private Widget widget;
 
     private static final Logger LOGGER = Logger.getLogger(MapNode.class.getName());
 
     static {
-        // Aggressively silence all Gluon and related logging
+
         String[] loggers = {"com.gluonhq", "com.gluonhq.maps", "com.gluonhq.impl.maps"};
         for (String l : loggers) {
             Logger logger = Logger.getLogger(l);
             logger.setLevel(Level.OFF);
             for (java.util.logging.Handler handler : Logger.getLogger("").getHandlers()) {
                 if (handler instanceof java.util.logging.ConsoleHandler) {
-                    // This might be too aggressive, but console logging is the enemy of performance
                     // handler.setLevel(Level.WARNING); 
                 }
             }
@@ -60,6 +76,7 @@ public class MapNode extends StackPane {
     private final PoiLayer markerLayer;
 
     public MapNode() {
+        this.maxZoom = 15;
         this.setPickOnBounds(true);
         this.setPrefSize(400, 400);
 
@@ -67,9 +84,31 @@ public class MapNode extends StackPane {
         markerLayer = new PoiLayer();
         view.addLayer(markerLayer);
 
-        MapPoint venezuela = new MapPoint(7.0, -66.0);
+        MapPoint country = new MapPoint(7.0, -66.0);
         view.setZoom(6);
-        view.setCenter(venezuela);
+        view.setCenter(country);
+
+        view.prefWidthProperty().bind(this.widthProperty());
+        view.prefHeightProperty().bind(this.heightProperty());
+
+        this.getChildren().add(view);
+
+        setupInteractions();
+    }
+
+    public MapNode(Widget widget) {
+        this.widget = widget;
+        this.maxZoom = 15;
+        this.setPickOnBounds(true);
+        this.setPrefSize(400, 400);
+
+        view = new MapView();
+        markerLayer = new PoiLayer();
+        view.addLayer(markerLayer);
+
+        MapPoint country = new MapPoint(7.0, -66.0);
+        view.setZoom(6);
+        view.setCenter(country);
 
         view.prefWidthProperty().bind(this.widthProperty());
         view.prefHeightProperty().bind(this.heightProperty());
@@ -86,23 +125,71 @@ public class MapNode extends StackPane {
                 addMarker(point);
             }
         });
+
     }
 
     private void addMarker(MapPoint point) {
-        Circle circle = new Circle(7, Color.RED);
-        circle.setStroke(Color.WHITE);
-        circle.setStrokeWidth(2);
+        MapMarker marker = new MapMarker();
+        marker.setDisplay("tes2.bob");
+        Map<String, String> macros = new HashMap<>();
+        
+        macros.put("LAT", String.valueOf(point.getLatitude()));
+        macros.put("LON", String.valueOf(point.getLongitude()));
+        
+        marker.setMacros(macros);
+        
+        ContextMenu menu = new ContextMenu();
+        MenuItem editItem = new MenuItem("Editar Marcador");
+        MenuItem deleteItem = new MenuItem("Eliminar");
 
-        circle.setOnMouseClicked(e -> {
-            if (e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
-    //                view.flyTo(1.0, point, view.getZoom() + 20);
+
+        marker.setOnMouseClicked(e -> {
+
+            if (e.getButton() == MouseButton.PRIMARY) {
+
+                if (e.getClickCount() == 2) {
+                    marker.openDisplay(this.widget);
+                    e.consume();
+                }
+
                 view.setCenter(point);
-                view.setZoom(15);
+
+                if (view.getZoom() >= maxZoom) {
+                    view.setZoom(maxZoom - 0.0001);
+                }
+                view.setZoom(maxZoom);
                 e.consume();
             }
         });
 
-        markerLayer.addPoint(point, circle);
+        marker.setOnMouseEntered(e -> {
+            marker.setStrokeWidth(3);
+        });
+        marker.setOnMouseExited(e -> {
+            marker.setStrokeWidth(2);
+        });
+
+        Tooltip data = new Tooltip(point.getLatitude() + ", " + point.getLongitude());
+        Tooltip.install(marker, data);
+
+        deleteItem.setOnAction(e -> {
+            markerLayer.removePoint(point, marker);
+        });
+        
+        
+        editItem.setOnAction(e -> {
+            MarkerEditDialog dialog = new MarkerEditDialog(marker);
+            dialog.showAndWait();
+        });
+
+        menu.getItems().addAll(editItem, deleteItem);
+
+        marker.setOnContextMenuRequested(e -> {
+            menu.show(marker, e.getScreenX(), e.getScreenY());
+            e.consume();
+        });
+
+        markerLayer.addPoint(point, marker);
     }
 
     private static class PoiLayer extends com.gluonhq.maps.MapLayer {
@@ -116,9 +203,17 @@ public class MapNode extends StackPane {
             this.markDirty();
         }
 
+        public void removePoint(MapPoint p, javafx.scene.Node icon) {
+            points.remove(new Pair<>(p, icon));
+            this.getChildren().remove(icon);
+
+        }
+
         @Override
         protected void layoutLayer() {
-            if (points.isEmpty()) return;
+            if (points.isEmpty()) {
+                return;
+            }
             for (Pair<MapPoint, javafx.scene.Node> candidate : points) {
                 MapPoint point = candidate.getKey();
                 javafx.scene.Node icon = candidate.getValue();
