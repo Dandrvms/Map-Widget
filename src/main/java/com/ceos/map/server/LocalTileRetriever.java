@@ -1,4 +1,4 @@
-package com.ceos.display.ui;
+package com.ceos.map.server;
 
 import com.gluonhq.maps.tile.TileRetriever;
 import java.util.concurrent.CompletableFuture;

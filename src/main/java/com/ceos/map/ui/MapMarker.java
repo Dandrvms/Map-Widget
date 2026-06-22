@@ -1,6 +1,6 @@
-package com.ceos.display.ui;
+package com.ceos.map.ui;
 
-import com.ceos.display.model.MarkerIcon;
+import com.ceos.map.model.MarkerIcon;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.Group;
@@ -56,7 +56,7 @@ public class MapMarker extends Group /*Circle*/ {
                 path = "/com/ceos/display/model/marker.png";
                 break;
             case DRILL:
-                path = "/com/ceos/display/model/marker.png";
+                path = "/com/ceos/display/model/drill.png";
                 break;
             case PUMP:
                 path = "/com/ceos/display/model/marker.png";
@@ -106,11 +106,4 @@ public class MapMarker extends Group /*Circle*/ {
     public Map<String, String> getMacros() {
         return this.macros;
     }
-
-    public void setIcon(MarkerIcon icon) {
-        switch (icon) {
-
-        }
-    }
-
 }

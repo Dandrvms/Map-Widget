@@ -25,15 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.ceos.display.ui;
+package com.ceos.map.ui;
 
-import com.ceos.display.model.MarkerData;
+import com.ceos.map.model.MarkerData;
+import com.ceos.map.model.PoiLayer;
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.IntConsumer;
 import javafx.scene.layout.StackPane;
 
 import java.util.logging.Level;
@@ -55,7 +55,7 @@ import org.csstudio.display.builder.model.Widget;
  */
 public class MapNode extends StackPane {
 
-    private final int maxZoom;
+    private final int maxZoom  = 15;
     private Widget widget;
 
     private static final Logger LOGGER = Logger.getLogger(MapNode.class.getName());
@@ -76,51 +76,33 @@ public class MapNode extends StackPane {
 
     private boolean editMode = false;
     private BiConsumer<Double, Double> onAddMarker;
+    private IntConsumer onDeleteMarker;
 
-    private final MapView view;
-    private final PoiLayer markerLayer;
+    private final MapView view = new MapView();
+    private final PoiLayer markerLayer = new PoiLayer();
 
-    public MapNode() {
-        this.maxZoom = 15;
+    private void init(){
         this.setPickOnBounds(true);
         this.setPrefSize(400, 400);
-
-        view = new MapView();
-        markerLayer = new PoiLayer();
         view.addLayer(markerLayer);
-
+        
+        // Venezuela
         MapPoint country = new MapPoint(7.0, -66.0);
         view.setZoom(6);
         view.setCenter(country);
-
+        
         view.prefWidthProperty().bind(this.widthProperty());
         view.prefHeightProperty().bind(this.heightProperty());
-
+        
         this.getChildren().add(view);
-
-//        setupInteractions();
+    }
+    public MapNode() {
+        init();
     }
 
     public MapNode(Widget widget) {
         this.widget = widget;
-        this.maxZoom = 15;
-        this.setPickOnBounds(true);
-        this.setPrefSize(400, 400);
-
-        view = new MapView();
-        markerLayer = new PoiLayer();
-        view.addLayer(markerLayer);
-
-        MapPoint country = new MapPoint(7.0, -66.0);
-        view.setZoom(6);
-        view.setCenter(country);
-
-        view.prefWidthProperty().bind(this.widthProperty());
-        view.prefHeightProperty().bind(this.heightProperty());
-
-        this.getChildren().add(view);
-
-//        setupInteractions();
+        init();
     }
 
     public void setEditMode(boolean editMode) {
@@ -135,9 +117,14 @@ public class MapNode extends StackPane {
     public void setOnAddMarker(BiConsumer<Double, Double> callback) {
         this.onAddMarker = callback;
     }
+    
+    public void setOnDeleteMarker(IntConsumer callback){
+        this.onDeleteMarker = callback;
+    }
 
     private void setupEditModeContextMenu() {
         view.setOnContextMenuRequested(e -> {
+            
             if (!editMode || onAddMarker == null) return;
             e.consume();
             MapPoint point = view.getMapPosition(e.getX(), e.getY());
@@ -155,14 +142,15 @@ public class MapNode extends StackPane {
 
     public void setMarkers(List<MarkerData> markers) {
         markerLayer.clearChildren();
-        for (MarkerData marker : markers) {
-            addMarker(marker);
+        for (int i = 0; i < markers.size(); i++) {
+            addMarker(markers.get(i), i);
         }
     }
 
-    private void addMarker(MarkerData point) {
+    private void addMarker(MarkerData point, int index) {
         MapMarker marker = new MapMarker(point.getIconType());
         marker.setDisplay(point.getDisplayPath());
+        marker.setUserData(index);
 
         marker.setOnMouseClicked(e -> {
 
@@ -184,73 +172,22 @@ public class MapNode extends StackPane {
                 e.consume();
             }
         });
+        
+        marker.setOnContextMenuRequested(e ->{
+            if (!editMode || onDeleteMarker == null) return;
+            e.consume();
+            int idx = (int) marker.getUserData();
+            ContextMenu cm = new ContextMenu();
+            MenuItem del = new MenuItem("Delete Marker");
+            del.setOnAction(eh -> onDeleteMarker.accept(idx));
+            cm.getItems().add(del);
+            cm.show(marker, e.getScreenX(), e.getScreenY());
+            
+        });
 
         Tooltip data = new Tooltip(point.getName() + ": " + point.getPoint().getLatitude() + ", " + point.getPoint().getLongitude());
         Tooltip.install(marker, data);
 
         markerLayer.addPoint(point.getPoint(), marker);
-    }
-
-    private static class PoiLayer extends com.gluonhq.maps.MapLayer {
-
-        private final javafx.collections.ObservableList<Pair<MapPoint, javafx.scene.Node>> points
-                = javafx.collections.FXCollections.observableArrayList();
-
-        public void addPoint(MapPoint p, javafx.scene.Node icon) {
-            points.add(new Pair<>(p, icon));
-            this.getChildren().add(icon);
-            this.markDirty();
-        }
-
-        public void clearChildren() {
-            this.getChildren().clear();
-            points.clear();
-        }
-        
-        public void markdirty(){
-            this.markDirty();
-        }
-
-        public void removePoint(MapPoint p, javafx.scene.Node icon) {
-            points.remove(new Pair<>(p, icon));
-            this.getChildren().remove(icon);
-
-        }
-
-        @Override
-        protected void layoutLayer() {
-            if (points.isEmpty()) {
-                return;
-            }
-            for (Pair<MapPoint, javafx.scene.Node> candidate : points) {
-                MapPoint point = candidate.getKey();
-                javafx.scene.Node icon = candidate.getValue();
-                javafx.geometry.Point2D mapPoint = getMapPoint(point.getLatitude(), point.getLongitude());
-                if (mapPoint != null) {
-                    icon.setVisible(true);
-                    icon.setTranslateX(mapPoint.getX());
-                    icon.setTranslateY(mapPoint.getY());
-                }
-            }
-        }
-    }
-
-    private static class Pair<K, V> {
-
-        private final K key;
-        private final V value;
-
-        public Pair(K key, V value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        public K getKey() {
-            return key;
-        }
-
-        public V getValue() {
-            return value;
-        }
     }
 }

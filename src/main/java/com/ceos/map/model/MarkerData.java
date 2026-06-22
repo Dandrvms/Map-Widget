@@ -1,4 +1,4 @@
-package com.ceos.display.model;
+package com.ceos.map.model;
 
 import com.gluonhq.maps.MapPoint;
 

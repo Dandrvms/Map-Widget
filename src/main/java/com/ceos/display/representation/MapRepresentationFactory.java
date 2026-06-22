@@ -1,6 +1,6 @@
 package com.ceos.display.representation;
 
-import com.ceos.display.ui.MapNode;
+import com.ceos.map.ui.MapNode;
 import javafx.scene.Parent;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.representation.WidgetRepresentation;

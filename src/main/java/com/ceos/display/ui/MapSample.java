@@ -1,5 +1,6 @@
 package com.ceos.display.ui;
 
+import com.ceos.map.ui.MapNode;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
