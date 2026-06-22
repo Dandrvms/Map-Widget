@@ -27,15 +27,19 @@
  */
 package com.ceos.display.ui;
 
+import com.ceos.display.model.MarkerData;
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import javafx.scene.layout.StackPane;
 
 import java.util.logging.Level;
 
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
@@ -43,14 +47,12 @@ import javafx.scene.input.MouseButton;
 import org.csstudio.display.builder.model.Widget;
 
 /**
- * 
+ *
  * @author Daniel
- * 
+ *
  * JavaFX Node that contains the map
- * 
+ *
  */
-
-
 public class MapNode extends StackPane {
 
     private final int maxZoom;
@@ -71,6 +73,9 @@ public class MapNode extends StackPane {
             }
         }
     }
+
+    private boolean editMode = false;
+    private BiConsumer<Double, Double> onAddMarker;
 
     private final MapView view;
     private final PoiLayer markerLayer;
@@ -93,7 +98,7 @@ public class MapNode extends StackPane {
 
         this.getChildren().add(view);
 
-        setupInteractions();
+//        setupInteractions();
     }
 
     public MapNode(Widget widget) {
@@ -115,33 +120,49 @@ public class MapNode extends StackPane {
 
         this.getChildren().add(view);
 
-        setupInteractions();
+//        setupInteractions();
     }
 
-    private void setupInteractions() {
+    public void setEditMode(boolean editMode) {
+        this.editMode = editMode;
+        if (editMode) {
+            setupEditModeContextMenu();
+        } else {
+            view.setOnContextMenuRequested(null);
+        }
+    }
+
+    public void setOnAddMarker(BiConsumer<Double, Double> callback) {
+        this.onAddMarker = callback;
+    }
+
+    private void setupEditModeContextMenu() {
         view.setOnContextMenuRequested(e -> {
+            if (!editMode || onAddMarker == null) return;
+            e.consume();
             MapPoint point = view.getMapPosition(e.getX(), e.getY());
-            if (point != null) {
-                addMarker(point);
-            }
-        });
+            if (point == null) return;
 
+            ContextMenu cm = new ContextMenu();
+            MenuItem addItem = new MenuItem("Add Marker Here");
+            addItem.setOnAction(ev ->
+                onAddMarker.accept(point.getLatitude(), point.getLongitude())
+            );
+            cm.getItems().add(addItem);
+            cm.show(view, e.getScreenX(), e.getScreenY());
+        });
     }
 
-    private void addMarker(MapPoint point) {
-        MapMarker marker = new MapMarker();
-        marker.setDisplay("tes2.bob");
-        Map<String, String> macros = new HashMap<>();
-        
-        macros.put("LAT", String.valueOf(point.getLatitude()));
-        macros.put("LON", String.valueOf(point.getLongitude()));
-        
-        marker.setMacros(macros);
-        
-        ContextMenu menu = new ContextMenu();
-        MenuItem editItem = new MenuItem("Editar Marcador");
-        MenuItem deleteItem = new MenuItem("Eliminar");
+    public void setMarkers(List<MarkerData> markers) {
+        markerLayer.clearChildren();
+        for (MarkerData marker : markers) {
+            addMarker(marker);
+        }
+    }
 
+    private void addMarker(MarkerData point) {
+        MapMarker marker = new MapMarker(point.getIconType());
+        marker.setDisplay(point.getDisplayPath());
 
         marker.setOnMouseClicked(e -> {
 
@@ -149,47 +170,25 @@ public class MapNode extends StackPane {
 
                 if (e.getClickCount() == 2) {
                     marker.openDisplay(this.widget);
-                    e.consume();
+                } else {
+                    Platform.runLater(() -> {
+                        view.setCenter(point.getPoint());
+                        if (view.getZoom() >= maxZoom) {
+                            view.setZoom(maxZoom - 0.0001);
+                        }
+                        view.setZoom(maxZoom);
+                        markerLayer.markdirty();
+                    });
                 }
 
-                view.setCenter(point);
-
-                if (view.getZoom() >= maxZoom) {
-                    view.setZoom(maxZoom - 0.0001);
-                }
-                view.setZoom(maxZoom);
                 e.consume();
             }
         });
 
-        marker.setOnMouseEntered(e -> {
-            marker.setStrokeWidth(3);
-        });
-        marker.setOnMouseExited(e -> {
-            marker.setStrokeWidth(2);
-        });
-
-        Tooltip data = new Tooltip(point.getLatitude() + ", " + point.getLongitude());
+        Tooltip data = new Tooltip(point.getName() + ": " + point.getPoint().getLatitude() + ", " + point.getPoint().getLongitude());
         Tooltip.install(marker, data);
 
-        deleteItem.setOnAction(e -> {
-            markerLayer.removePoint(point, marker);
-        });
-        
-        
-        editItem.setOnAction(e -> {
-            MarkerEditDialog dialog = new MarkerEditDialog(marker);
-            dialog.showAndWait();
-        });
-
-        menu.getItems().addAll(editItem, deleteItem);
-
-        marker.setOnContextMenuRequested(e -> {
-            menu.show(marker, e.getScreenX(), e.getScreenY());
-            e.consume();
-        });
-
-        markerLayer.addPoint(point, marker);
+        markerLayer.addPoint(point.getPoint(), marker);
     }
 
     private static class PoiLayer extends com.gluonhq.maps.MapLayer {
@@ -200,6 +199,15 @@ public class MapNode extends StackPane {
         public void addPoint(MapPoint p, javafx.scene.Node icon) {
             points.add(new Pair<>(p, icon));
             this.getChildren().add(icon);
+            this.markDirty();
+        }
+
+        public void clearChildren() {
+            this.getChildren().clear();
+            points.clear();
+        }
+        
+        public void markdirty(){
             this.markDirty();
         }
 
