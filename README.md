@@ -37,31 +37,6 @@ target/Map-Widget-0.13.0-SNAPSHOT.jar
 
 This widget is designed as a plugin for Phoebus. For detailed deployment instructions, including custom launch scripts and classpath configuration, **refer to the [hello-widget README](https://github.com/dandrvms/hello-widget/blob/phoebus/README.md#deployment--integration)** – the same principle applies: use a custom launcher script to include the widget JAR alongside the Phoebus product JAR.
 
-## Architecture Overview
-
-```
-com.ceos.display.model/     # Widget model definition
-├── MapDescriptor           # Registers widget with Phoebus
-├── MapWidget              # Widget properties (markers, coordinates)
-
-com.ceos.display.representation/  # JavaFX representation
-├── MapRepresentation       # Maps model to UI
-├── MapRepresentationFactory
-└── WidgetSuiteService      # Service registration
-
-com.ceos.map.ui/            # JavaFX UI components
-├── MapNode                 # Main map container
-├── MapMarker               # Individual marker UI
-
-com.ceos.map.model/         # Data models
-├── MarkerData              # Marker DTO
-├── MarkerIcon              # Icon enum
-└── PoiLayer                # Layer for map markers
-
-com.ceos.map.server/        # Tile retrieval
-└── LocalTileRetriever      # Custom tile source
-```
-
 ## Features
 
 - Display interactive maps powered by [Gluon Maps](https://github.com/gluonhq/maps)
