@@ -1,4 +1,4 @@
-package com.ceos.display.representation;
+    package com.ceos.display.representation;
 
 import com.ceos.map.ui.MapNode;
 import javafx.scene.Parent;

@@ -26,8 +26,6 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
 
     private final UntypedWidgetPropertyListener contentChangedListener = this::contentChanged;
     private final UntypedWidgetPropertyListener markerListener = (prop, old, val) -> setupMarkers();
-    private volatile List<String> coords = Collections.emptyList();
-    private volatile int index = -1;
 
     @Override
     protected MapNode createJFXNode() throws Exception {

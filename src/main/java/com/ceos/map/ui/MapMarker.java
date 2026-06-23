@@ -4,11 +4,14 @@ import com.ceos.map.model.MarkerIcon;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.scene.Group;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
 import org.csstudio.display.builder.model.Widget;
 import org.csstudio.display.builder.runtime.script.ScriptUtil;
 
@@ -77,6 +80,14 @@ public class MapMarker extends Group /*Circle*/ {
     public void openDisplay(Widget widget) {
         if (display == null || display.isEmpty()) {
             System.out.println("No hay ninguna ruta configurada en este marcador.");
+            Alert alert = new Alert(AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Something went wrong");
+            alert.setContentText("No display has been set for this marker");
+
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image("/com/ceos/display/model/exclamation.png"));
+            alert.showAndWait();
             return;
         }
 
