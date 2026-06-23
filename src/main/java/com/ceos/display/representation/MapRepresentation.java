@@ -4,9 +4,11 @@ import com.ceos.display.model.MapWidget;
 import com.ceos.map.model.MarkerData;
 import com.ceos.map.model.MarkerIcon;
 import com.ceos.map.ui.MapNode;
+import com.ceos.map.ui.MarkerDialog;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import javafx.application.Platform;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
@@ -67,7 +69,13 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
             node.setOnAddMarker((lat, lon)
                     -> Platform.runLater(() -> {
                         try {
-                            addMarkerToModel(lat, lon);
+                            MarkerDialog d = new MarkerDialog(lat, lon);
+                            Optional<Boolean> result = d.showAndWait();
+                            if (result.isPresent() && result.get()) {
+                                addMarkerToModel(lat, lon, d.getDisplay());
+                            }
+                            
+//                            addMarkerToModel(lat, lon, d.getDisplay());
                         } catch (Exception ex) {
                             System.getLogger(MapRepresentation.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
@@ -104,12 +112,11 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
 //        attachListeners();
     }
 
-    private void addMarkerToModel(double lat, double lon) throws Exception {
-        StructuredWidgetProperty newMarker = model_widget.addMarker(lat, lon);
+    private void addMarkerToModel(double lat, double lon, String display) throws Exception {
+        StructuredWidgetProperty newMarker = model_widget.addMarker(lat, lon, display);
         for (WidgetProperty<?> p : newMarker.getValue()) {
             p.addUntypedPropertyListener(markerListener);
         }
     }
-    
 
 }

@@ -11,15 +11,8 @@ This widget provides an interactive map for the [Phoebus Control System Studio](
 
 ## Map Tile Server Requirements
 
-This widget requires a map tile server to function. You have two options:
+This widget requires a map tile server to function. 
 
-### Option 1: Online OpenStreetMap Server
-Replace the `host` constant in `LocalTileRetriever.java` with an online tile service:
-```java
-private static final String host = "https://tile.openstreetmap.org/";
-```
-
-### Option 2: Local Tile Server
 You can run a local tile server using [Switch2OSM](https://switch2osm.org/) or a similar solution. The default configuration points to a local server:
 ```java
 private static final String host = "http://172.28.41.114/hot/";
@@ -74,7 +67,6 @@ com.ceos.map.server/        # Tile retrieval
 - Display interactive maps powered by [Gluon Maps](https://github.com/gluonhq/maps)
 - Add, remove, and configure markers dynamically
 - Each marker can be linked to a Phoebus display (`.bob` file) for quick navigation
-- Supports both online (OpenStreetMap) and local tile servers
 
 ## How It Works
 

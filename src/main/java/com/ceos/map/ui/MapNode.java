@@ -43,6 +43,8 @@ import javafx.application.Platform;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import org.csstudio.display.builder.model.Widget;
 
@@ -55,7 +57,7 @@ import org.csstudio.display.builder.model.Widget;
  */
 public class MapNode extends StackPane {
 
-    private final int maxZoom  = 15;
+    private final int maxZoom = 15;
     private Widget widget;
 
     private static final Logger LOGGER = Logger.getLogger(MapNode.class.getName());
@@ -81,21 +83,27 @@ public class MapNode extends StackPane {
     private final MapView view = new MapView();
     private final PoiLayer markerLayer = new PoiLayer();
 
-    private void init(){
+    private final ContextMenu addMenu = new ContextMenu();
+    private final ContextMenu delMenu = new ContextMenu();
+
+    private void init() {
         this.setPickOnBounds(true);
         this.setPrefSize(400, 400);
         view.addLayer(markerLayer);
-        
+
         // Venezuela
         MapPoint country = new MapPoint(7.0, -66.0);
         view.setZoom(6);
         view.setCenter(country);
-        
+
         view.prefWidthProperty().bind(this.widthProperty());
         view.prefHeightProperty().bind(this.heightProperty());
-        
+
         this.getChildren().add(view);
+
+        initContextMenu();
     }
+
     public MapNode() {
         init();
     }
@@ -103,6 +111,25 @@ public class MapNode extends StackPane {
     public MapNode(Widget widget) {
         this.widget = widget;
         init();
+    }
+
+    private void initContextMenu() {
+        MenuItem addItem = new MenuItem("Add Marker Here");
+        ImageView add = new ImageView(new Image(getClass().getResourceAsStream("/com/ceos/display/model/markeradd.png")));
+        add.setFitWidth(16);
+        add.setFitHeight(16);
+
+        addItem.setGraphic(add);
+        addMenu.getItems().add(addItem);
+        
+        MenuItem delItem = new MenuItem("Delete Marker");
+
+        ImageView del = new ImageView(new Image(getClass().getResourceAsStream("/com/ceos/display/model/markerdelete.png")));
+        del.setFitWidth(16);
+        del.setFitHeight(16);
+        delItem.setGraphic(del);
+        delMenu.getItems().add(delItem);
+
     }
 
     public void setEditMode(boolean editMode) {
@@ -117,26 +144,33 @@ public class MapNode extends StackPane {
     public void setOnAddMarker(BiConsumer<Double, Double> callback) {
         this.onAddMarker = callback;
     }
-    
-    public void setOnDeleteMarker(IntConsumer callback){
+
+    public void setOnDeleteMarker(IntConsumer callback) {
         this.onDeleteMarker = callback;
     }
 
     private void setupEditModeContextMenu() {
         view.setOnContextMenuRequested(e -> {
-            
-            if (!editMode || onAddMarker == null) return;
+
+            if (!editMode || onAddMarker == null) {
+                return;
+            }
             e.consume();
             MapPoint point = view.getMapPosition(e.getX(), e.getY());
-            if (point == null) return;
+            if (point == null) {
+                return;
+            }
+            
+            if(addMenu.isShowing()) addMenu.hide();
+            if(delMenu.isShowing()) delMenu.hide();
 
-            ContextMenu cm = new ContextMenu();
-            MenuItem addItem = new MenuItem("Add Marker Here");
-            addItem.setOnAction(ev ->
-                onAddMarker.accept(point.getLatitude(), point.getLongitude())
+            MenuItem addItem = addMenu.getItems().get(0);
+
+            addItem.setOnAction(ev
+                    -> onAddMarker.accept(point.getLatitude(), point.getLongitude())
             );
-            cm.getItems().add(addItem);
-            cm.show(view, e.getScreenX(), e.getScreenY());
+
+            addMenu.show(view, e.getScreenX(), e.getScreenY());
         });
     }
 
@@ -172,17 +206,22 @@ public class MapNode extends StackPane {
                 e.consume();
             }
         });
-        
-        marker.setOnContextMenuRequested(e ->{
-            if (!editMode || onDeleteMarker == null) return;
+
+        marker.setOnContextMenuRequested(e -> {
+            if (!editMode || onDeleteMarker == null) {
+                return;
+            }
             e.consume();
             int idx = (int) marker.getUserData();
-            ContextMenu cm = new ContextMenu();
-            MenuItem del = new MenuItem("Delete Marker");
-            del.setOnAction(eh -> onDeleteMarker.accept(idx));
-            cm.getItems().add(del);
-            cm.show(marker, e.getScreenX(), e.getScreenY());
             
+            if(addMenu.isShowing()) addMenu.hide();
+            if(delMenu.isShowing()) delMenu.hide();
+
+            MenuItem delItem = delMenu.getItems().get(0);
+            delItem.setOnAction(eh -> onDeleteMarker.accept(idx));
+
+            delMenu.show(marker, e.getScreenX(), e.getScreenY());
+
         });
 
         Tooltip data = new Tooltip(point.getName() + ": " + point.getPoint().getLatitude() + ", " + point.getPoint().getLongitude());

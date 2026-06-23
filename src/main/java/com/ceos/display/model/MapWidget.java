@@ -90,7 +90,7 @@ public class MapWidget extends WritablePVWidget {
         return items_from_pv;
     }
 
-    public StructuredWidgetProperty addMarker(double lat, double lon) throws Exception {
+    public StructuredWidgetProperty addMarker(double lat, double lon, String display) throws Exception {
         StructuredWidgetProperty newMarker = propMarker.createProperty(this, Arrays.asList(
                 CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.MISC, "lat", "Latitude")
                         .createProperty(this, lat),
@@ -99,7 +99,7 @@ public class MapWidget extends WritablePVWidget {
                 CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.MISC, "name", "Name")
                         .createProperty(this, "Marker " + (coords.size() + 1)),
                 CommonWidgetProperties.newFilenamePropertyDescriptor(WidgetPropertyCategory.MISC, "bob", "Display binding")
-                        .createProperty(this, ""),
+                        .createProperty(this, display),
                 propIconType.createProperty(this, MarkerIcon.DEFAULT)
         ));
         coords.addElement(newMarker);
