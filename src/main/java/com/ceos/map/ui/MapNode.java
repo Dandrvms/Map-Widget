@@ -70,7 +70,6 @@ public class MapNode extends StackPane {
             logger.setLevel(Level.OFF);
             for (java.util.logging.Handler handler : Logger.getLogger("").getHandlers()) {
                 if (handler instanceof java.util.logging.ConsoleHandler) {
-                    // handler.setLevel(Level.WARNING); 
                 }
             }
         }
@@ -121,7 +120,7 @@ public class MapNode extends StackPane {
 
         addItem.setGraphic(add);
         addMenu.getItems().add(addItem);
-        
+
         MenuItem delItem = new MenuItem("Delete Marker");
 
         ImageView del = new ImageView(new Image(getClass().getResourceAsStream("/icons/markerdelete.png")));
@@ -160,9 +159,13 @@ public class MapNode extends StackPane {
             if (point == null) {
                 return;
             }
-            
-            if(addMenu.isShowing()) addMenu.hide();
-            if(delMenu.isShowing()) delMenu.hide();
+
+            if (addMenu.isShowing()) {
+                addMenu.hide();
+            }
+            if (delMenu.isShowing()) {
+                delMenu.hide();
+            }
 
             MenuItem addItem = addMenu.getItems().get(0);
 
@@ -213,9 +216,13 @@ public class MapNode extends StackPane {
             }
             e.consume();
             int idx = (int) marker.getUserData();
-            
-            if(addMenu.isShowing()) addMenu.hide();
-            if(delMenu.isShowing()) delMenu.hide();
+
+            if (addMenu.isShowing()) {
+                addMenu.hide();
+            }
+            if (delMenu.isShowing()) {
+                delMenu.hide();
+            }
 
             MenuItem delItem = delMenu.getItems().get(0);
             delItem.setOnAction(eh -> onDeleteMarker.accept(idx));
@@ -228,5 +235,27 @@ public class MapNode extends StackPane {
         Tooltip.install(marker, data);
 
         markerLayer.addPoint(point.getPoint(), marker);
+    }
+
+    public void dispose() {
+        if (addMenu.isShowing()) {
+            addMenu.hide();
+        }
+        if (delMenu.isShowing()) {
+            delMenu.hide();
+        }
+
+        view.prefWidthProperty().unbind();
+        view.prefHeightProperty().unbind();
+
+        markerLayer.clearChildren();
+
+        view.setOnContextMenuRequested(null);
+
+        onAddMarker = null;
+        onDeleteMarker = null;
+        widget = null;
+        
+        markerLayer.cleanup();
     }
 }

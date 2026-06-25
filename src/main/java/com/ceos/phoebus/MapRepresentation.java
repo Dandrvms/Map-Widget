@@ -1,13 +1,7 @@
 package com.ceos.phoebus;
 
-import com.ceos.phoebus.MapWidget;
-import com.ceos.map.model.MarkerData;
-import com.ceos.map.model.MarkerIcon;
 import com.ceos.map.ui.MapNode;
 import com.ceos.map.ui.MarkerDialog;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import javafx.application.Platform;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
@@ -48,13 +42,9 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
         final MapWidget model = model_widget;
         final MapNode node = jfx_node;
 
-        model.propWidth().addUntypedPropertyListener((prop, old, val) -> {
-            node.setPrefWidth(((Number) val).doubleValue());
-        });
+        model.propWidth().addUntypedPropertyListener(contentChangedListener);
 
-        model.propHeight().addUntypedPropertyListener((prop, old, val) -> {
-            node.setPrefHeight(((Number) val).doubleValue());
-        });
+        model.propHeight().addUntypedPropertyListener(contentChangedListener);
 
         node.setPrefSize(model.propWidth().getValue().doubleValue(), model.propHeight().getValue().doubleValue());
 
@@ -72,8 +62,6 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
                             if (result.isPresent() && result.get()) {
                                 addMarkerToModel(lat, lon, d.getDisplay());
                             }
-                            
-//                            addMarkerToModel(lat, lon, d.getDisplay());
                         } catch (Exception ex) {
                             System.getLogger(MapRepresentation.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
@@ -99,7 +87,6 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
     private void attachListeners() {
         for (StructuredWidgetProperty marker : model_widget.propCoords().getValue()) {
             for (WidgetProperty<?> prop : marker.getValue()) {
-
                 prop.addUntypedPropertyListener(markerListener);
             }
         }
@@ -107,7 +94,8 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
 
     private void contentChanged(final WidgetProperty<?> prop, final Object old, Object val) {
         setupMarkers();
-//        attachListeners();
+        jfx_node.setPrefWidth(((Number) val).doubleValue());
+        jfx_node.setPrefHeight(((Number) val).doubleValue());
     }
 
     private void addMarkerToModel(double lat, double lon, String display) throws Exception {
@@ -115,6 +103,26 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
         for (WidgetProperty<?> p : newMarker.getValue()) {
             p.addUntypedPropertyListener(markerListener);
         }
+    }
+
+    @Override
+    protected void unregisterListeners() {
+        model_widget.propWidth().removePropertyListener(contentChangedListener);
+        model_widget.propHeight().removePropertyListener(contentChangedListener);
+        model_widget.propCoords().removePropertyListener(contentChangedListener);
+
+        for (StructuredWidgetProperty marker : model_widget.propCoords().getValue()) {
+            for (WidgetProperty<?> prop : marker.getValue()) {
+                prop.removePropertyListener(markerListener);
+            }
+        }
+        super.unregisterListeners();
+    }
+    
+    @Override
+    public void dispose(){
+        jfx_node.dispose();
+        super.dispose();
     }
 
 }

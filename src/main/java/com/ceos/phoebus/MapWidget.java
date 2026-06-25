@@ -64,7 +64,7 @@ public class MapWidget extends WritablePVWidget {
                             CommonWidgetProperties.newFilenamePropertyDescriptor(WidgetPropertyCategory.MISC, "bob", "Display binding").
                                     createProperty(widget, ""),
                             propIconType.createProperty(widget, MarkerIcon.DEFAULT)
-                    ))
+                    )), 0
             );
 
     private volatile WidgetProperty<Boolean> items_from_pv;
