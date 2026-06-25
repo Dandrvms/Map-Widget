@@ -1,4 +1,4 @@
-package com.ceos.display.model;
+package com.ceos.phoebus;
 
 import java.net.URL;
 import org.csstudio.display.builder.model.Widget;

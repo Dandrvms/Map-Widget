@@ -1,4 +1,4 @@
-package com.ceos.display.model;
+package com.ceos.phoebus;
 
 import com.ceos.map.model.MarkerData;
 import com.ceos.map.model.MarkerIcon;

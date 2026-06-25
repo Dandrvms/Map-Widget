@@ -1,6 +1,5 @@
-package com.ceos.display.representation;
+package com.ceos.phoebus;
 
-import com.ceos.display.model.MapDescriptor;
 import java.util.HashMap;
 import java.util.Map;
 import org.csstudio.display.builder.model.WidgetDescriptor;
@@ -14,7 +13,7 @@ import org.csstudio.display.builder.representation.spi.WidgetRepresentationsServ
  * Register the widget representation factory for maps.
  *
  */
-public class WidgetSuiteService implements WidgetRepresentationsService {
+public class MapRepresentationsService implements WidgetRepresentationsService {
 
     @Override
     public Map<WidgetDescriptor, WidgetRepresentationFactory<?, ?>> getWidgetRepresentationFactories() {

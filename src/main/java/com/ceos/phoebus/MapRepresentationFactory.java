@@ -1,5 +1,6 @@
-    package com.ceos.display.representation;
+    package com.ceos.phoebus;
 
+import com.ceos.phoebus.MapRepresentation;
 import com.ceos.map.ui.MapNode;
 import javafx.scene.Parent;
 import org.csstudio.display.builder.model.Widget;

@@ -1,6 +1,6 @@
-package com.ceos.display.representation;
+package com.ceos.phoebus;
 
-import com.ceos.display.model.MapWidget;
+import com.ceos.phoebus.MapWidget;
 import com.ceos.map.model.MarkerData;
 import com.ceos.map.model.MarkerIcon;
 import com.ceos.map.ui.MapNode;
