@@ -53,19 +53,19 @@ public class MapMarker extends Group /*Circle*/ {
         String path = "";
         switch (icon) {
             case DEFAULT:
-                path = "/com/ceos/display/model/marker.png";
+                path = "/icons/marker.png";
                 break;
             case ZOOM:
-                path = "/com/ceos/display/model/marker.png";
+                path = "/icons/marker.png";
                 break;
             case DRILL:
-                path = "/com/ceos/display/model/drill.png";
+                path = "/icons/drill.png";
                 break;
             case PUMP:
-                path = "/com/ceos/display/model/marker.png";
+                path = "/icons/marker.png";
                 break;
             default:
-                path = "/com/ceos/display/model/marker.png";
+                path = "/icons/marker.png";
                 break;
         }
 
@@ -86,7 +86,7 @@ public class MapMarker extends Group /*Circle*/ {
             alert.setContentText("No display has been set for this marker");
 
             Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image("/com/ceos/display/model/exclamation.png"));
+            stage.getIcons().add(new Image("/icons/exclamation.png"));
             alert.showAndWait();
             return;
         }

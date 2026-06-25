@@ -17,7 +17,7 @@ public class MarkerDialog extends Dialog<Boolean> {
     public MarkerDialog(Double lat, Double lon) {
         setTitle("Setup Marker");
         Stage stage = (Stage) this.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(new Image("/com/ceos/display/model/marker.png")); 
+        stage.getIcons().add(new Image("/icons/marker.png")); 
         
         setHeaderText("Choose Phoebus display binding.");
 

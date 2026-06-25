@@ -115,7 +115,7 @@ public class MapNode extends StackPane {
 
     private void initContextMenu() {
         MenuItem addItem = new MenuItem("Add Marker Here");
-        ImageView add = new ImageView(new Image(getClass().getResourceAsStream("/com/ceos/display/model/markeradd.png")));
+        ImageView add = new ImageView(new Image(getClass().getResourceAsStream("/icons/markeradd.png")));
         add.setFitWidth(16);
         add.setFitHeight(16);
 
@@ -124,7 +124,7 @@ public class MapNode extends StackPane {
         
         MenuItem delItem = new MenuItem("Delete Marker");
 
-        ImageView del = new ImageView(new Image(getClass().getResourceAsStream("/com/ceos/display/model/markerdelete.png")));
+        ImageView del = new ImageView(new Image(getClass().getResourceAsStream("/icons/markerdelete.png")));
         del.setFitWidth(16);
         del.setFitHeight(16);
         delItem.setGraphic(del);

@@ -117,7 +117,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
                 <configuration>
-                    <mainClass>com.ceos.display.ui.MapSample</mainClass>
+                    <mainClass>com.ceos.map.ui.MapSample</mainClass>
                 </configuration>
             </plugin>
         </plugins>
