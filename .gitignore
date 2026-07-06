@@ -1,4 +1,5 @@
 target
+.idea
 *.ps1
 *.bat
 dependency-reduced-pom.xml

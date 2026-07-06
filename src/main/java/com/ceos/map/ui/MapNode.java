@@ -31,9 +31,13 @@ import com.ceos.map.model.MarkerData;
 import com.ceos.map.model.PoiLayer;
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
+
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
+
+import javafx.geometry.Point2D;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 
 import java.util.logging.Level;
@@ -78,12 +82,15 @@ public class MapNode extends StackPane {
     private boolean editMode = false;
     private BiConsumer<Double, Double> onAddMarker;
     private IntConsumer onDeleteMarker;
+    private IntConsumer onEditMarker;
+    private BiConsumer<Integer, MarkerData> onMoveMarker;
 
     private final MapView view = new MapView();
     private final PoiLayer markerLayer = new PoiLayer();
 
     private final ContextMenu addMenu = new ContextMenu();
-    private final ContextMenu delMenu = new ContextMenu();
+    private final ContextMenu editMenu = new ContextMenu();
+
 
     private void init() {
         this.setPickOnBounds(true);
@@ -121,13 +128,20 @@ public class MapNode extends StackPane {
         addItem.setGraphic(add);
         addMenu.getItems().add(addItem);
 
+        MenuItem editItem = new MenuItem("Edit Marker");
+        ImageView edt = new ImageView(new Image(getClass().getResourceAsStream("/icons/markeredit.png")));
+        edt.setFitWidth(16);
+        edt.setFitHeight(16);
+        editItem.setGraphic(edt);
+
         MenuItem delItem = new MenuItem("Delete Marker");
 
         ImageView del = new ImageView(new Image(getClass().getResourceAsStream("/icons/markerdelete.png")));
         del.setFitWidth(16);
         del.setFitHeight(16);
         delItem.setGraphic(del);
-        delMenu.getItems().add(delItem);
+        editMenu.getItems().add(editItem);
+        editMenu.getItems().add(delItem);
 
     }
 
@@ -148,6 +162,10 @@ public class MapNode extends StackPane {
         this.onDeleteMarker = callback;
     }
 
+    public void setOnEditMarker(IntConsumer callback){
+        this.onEditMarker = callback;
+    }
+
     private void setupEditModeContextMenu() {
         view.setOnContextMenuRequested(e -> {
 
@@ -163,8 +181,8 @@ public class MapNode extends StackPane {
             if (addMenu.isShowing()) {
                 addMenu.hide();
             }
-            if (delMenu.isShowing()) {
-                delMenu.hide();
+            if (editMenu.isShowing()) {
+                editMenu.hide();
             }
 
             MenuItem addItem = addMenu.getItems().get(0);
@@ -210,8 +228,30 @@ public class MapNode extends StackPane {
             }
         });
 
+
+        marker.setOnMouseDragged((MouseEvent e) ->{
+            if(!editMode) return;
+            e.consume();
+            Point2D viewCoords = view.sceneToLocal(e.getSceneX(), e.getSceneY());
+            MapPoint newPoint = view.getMapPosition(viewCoords.getX(), viewCoords.getY());
+            if(newPoint != null){
+                markerLayer.updatePosition(marker, newPoint);
+            }
+        });
+
+        marker.setOnMouseReleased(e -> {
+            if (!editMode) return;
+            Point2D viewCoords = view.sceneToLocal(e.getSceneX(), e.getSceneY());
+            MapPoint finalPoint = view.getMapPosition(viewCoords.getX(), viewCoords.getY());
+            if (finalPoint != null){
+                int idx = (int) marker.getUserData();
+                onMoveMarker.accept(idx, new MarkerData(finalPoint.getLatitude(), finalPoint.getLongitude()));
+            }
+        });
+
+
         marker.setOnContextMenuRequested(e -> {
-            if (!editMode || onDeleteMarker == null) {
+            if (!editMode || onDeleteMarker == null || onEditMarker == null) {
                 return;
             }
             e.consume();
@@ -220,14 +260,17 @@ public class MapNode extends StackPane {
             if (addMenu.isShowing()) {
                 addMenu.hide();
             }
-            if (delMenu.isShowing()) {
-                delMenu.hide();
+            if (editMenu.isShowing()) {
+                editMenu.hide();
             }
 
-            MenuItem delItem = delMenu.getItems().get(0);
+            MenuItem editItem = editMenu.getItems().get(0);
+            editItem.setOnAction(eh -> onEditMarker.accept(idx));
+
+            MenuItem delItem = editMenu.getItems().get(1);
             delItem.setOnAction(eh -> onDeleteMarker.accept(idx));
 
-            delMenu.show(marker, e.getScreenX(), e.getScreenY());
+            editMenu.show(marker, e.getScreenX(), e.getScreenY());
 
         });
 
@@ -237,12 +280,16 @@ public class MapNode extends StackPane {
         markerLayer.addPoint(point.getPoint(), marker);
     }
 
+    public void setOnMoveMarker(BiConsumer<Integer, MarkerData> callback){
+        this.onMoveMarker = callback;
+    }
+
     public void dispose() {
         if (addMenu.isShowing()) {
             addMenu.hide();
         }
-        if (delMenu.isShowing()) {
-            delMenu.hide();
+        if (editMenu.isShowing()) {
+            editMenu.hide();
         }
 
         view.prefWidthProperty().unbind();
@@ -254,6 +301,7 @@ public class MapNode extends StackPane {
 
         onAddMarker = null;
         onDeleteMarker = null;
+        onEditMarker = null;
         widget = null;
         
         markerLayer.cleanup();

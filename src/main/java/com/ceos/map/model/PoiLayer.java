@@ -62,6 +62,16 @@ public class PoiLayer extends com.gluonhq.maps.MapLayer {
         }
     }
 
+    public void updatePosition(Node node, MapPoint newPoint){
+        for(int i = 0; i < points.size(); i++){
+            if(points.get(i).getValue() == node){
+                points.set(i, new Pair<>(newPoint, node));
+                markdirty();
+                return;
+            }
+        }
+    }
+
     public void cleanup() {
         if (zoomListener != null) {
             baseMap.zoom().removeListener(zoomListener);

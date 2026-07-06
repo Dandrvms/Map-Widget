@@ -1,9 +1,12 @@
 package com.ceos.phoebus;
 
+import com.ceos.map.model.MarkerData;
+import com.ceos.map.ui.EditDialog;
 import com.ceos.map.ui.MapNode;
 import com.ceos.map.ui.MarkerDialog;
 import java.util.Optional;
 import javafx.application.Platform;
+import org.csstudio.display.builder.model.DirtyFlag;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
 import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
 import org.csstudio.display.builder.model.WidgetProperty;
@@ -17,6 +20,7 @@ import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseReprese
  *
  */
 public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget> {
+    private DirtyFlag dirty_look = new DirtyFlag();
 
     private final UntypedWidgetPropertyListener contentChangedListener = this::contentChanged;
     private final UntypedWidgetPropertyListener markerListener = (prop, old, val) -> setupMarkers();
@@ -29,10 +33,16 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
     @Override
     public void updateChanges() {
         super.updateChanges();
+
         final MapWidget model = model_widget;
         final MapNode node = jfx_node;
-        node.setPrefSize(model.propWidth().getValue(), model.propHeight().getValue());
-        setupMarkers();
+
+        int height = model_widget.propHeight().getValue();
+        int width = model_widget.propWidth().getValue();
+
+        node.setPrefHeight(height);
+        node.setPrefWidth(width);
+        node.setMarkers(model_widget.getMarkers());
 
     }
 
@@ -43,12 +53,10 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
         final MapNode node = jfx_node;
 
         model.propWidth().addUntypedPropertyListener(contentChangedListener);
-
         model.propHeight().addUntypedPropertyListener(contentChangedListener);
-
         node.setPrefSize(model.propWidth().getValue().doubleValue(), model.propHeight().getValue().doubleValue());
-
         model.propCoords().addUntypedPropertyListener(contentChangedListener);
+
         attachListeners();
 
         boolean isEditMode = toolkit.isEditMode();
@@ -60,13 +68,36 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
                             MarkerDialog d = new MarkerDialog(lat, lon);
                             Optional<Boolean> result = d.showAndWait();
                             if (result.isPresent() && result.get()) {
-                                addMarkerToModel(lat, lon, d.getDisplay());
+                                addMarkerToModel(lat, lon, d.getDisplay(), d.getName());
                             }
                         } catch (Exception ex) {
                             System.getLogger(MapRepresentation.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
                         }
                     })
             );
+
+            node.setOnEditMarker(index
+                    -> Platform.runLater(() -> {
+                        try {
+                            MarkerData marker = model_widget.getMarker(index);
+                            EditDialog e = new EditDialog(marker.getPoint().getLatitude(), marker.getPoint().getLongitude(), marker.getName(), marker.getDisplayPath(), marker.getIconType());
+                            Optional<Boolean> result = e.showAndWait();
+                            if(result.isPresent() && result.get()) {
+                                model_widget.updateMarker(index, e.getName(), e.getDisplay(), e.getIcon());
+                            }
+                        } catch (Exception e) {
+                            System.getLogger(MapRepresentation.class.getName()).log(System.Logger.Level.ERROR, (String) null, e);
+                        }
+                    })
+            );
+
+            node.setOnMoveMarker((index, marker) -> Platform.runLater(() -> {
+                try{
+                    model_widget.updateMarkerPosition(index, marker);
+                } catch(Exception e) {
+
+                }
+            }));
 
             node.setOnDeleteMarker(index
                     -> Platform.runLater(() -> {
@@ -93,13 +124,13 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
     }
 
     private void contentChanged(final WidgetProperty<?> prop, final Object old, Object val) {
+        dirty_look.mark();
+        toolkit.scheduleUpdate(this);
         setupMarkers();
-        jfx_node.setPrefWidth(((Number) val).doubleValue());
-        jfx_node.setPrefHeight(((Number) val).doubleValue());
     }
 
-    private void addMarkerToModel(double lat, double lon, String display) throws Exception {
-        StructuredWidgetProperty newMarker = model_widget.addMarker(lat, lon, display);
+    private void addMarkerToModel(double lat, double lon, String display, String name) throws Exception {
+        StructuredWidgetProperty newMarker = model_widget.addMarker(lat, lon, display, name);
         for (WidgetProperty<?> p : newMarker.getValue()) {
             p.addUntypedPropertyListener(markerListener);
         }

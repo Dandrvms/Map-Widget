@@ -5,6 +5,7 @@ import com.ceos.map.model.MarkerIcon;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.csstudio.display.builder.model.ArrayWidgetProperty;
 import org.csstudio.display.builder.model.StructuredWidgetProperty;
@@ -28,15 +29,18 @@ import org.csstudio.display.builder.model.widgets.WritablePVWidget;
  */
 public class MapWidget extends WritablePVWidget {
 
+
+    //***********************************
+    //Marker structured properties order
     public static final int IDX_LAT = 0;
     public static final int IDX_LON = 1;
     public static final int IDX_NAME = 2;
     public static final int IDX_BOB = 3;
     public static final int IDX_ICON = 4;
+    //************************************
 
     public static final String WIDGET_TYPE = "map";
 
-//    private volatile PointsWidgetProperty coords;
     private ArrayWidgetProperty<StructuredWidgetProperty> coords;
 
     public static final StructuredWidgetProperty.Descriptor propMarker
@@ -54,17 +58,9 @@ public class MapWidget extends WritablePVWidget {
     public static final ArrayWidgetProperty.Descriptor<StructuredWidgetProperty> propCoords
             = new ArrayWidgetProperty.Descriptor<>(
                     WidgetPropertyCategory.MISC, "coords", "Markers",
-                    (widget, index) -> propMarker.createProperty(widget, Arrays.asList(
-                            CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.MISC, "lat", "Latitude").
-                                    createProperty(widget, 0.0),
-                            CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.MISC, "lon", "Longitude").
-                                    createProperty(widget, 0.0),
-                            CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.MISC, "name", "Name").
-                                    createProperty(widget, "Marker " + index),
-                            CommonWidgetProperties.newFilenamePropertyDescriptor(WidgetPropertyCategory.MISC, "bob", "Display binding").
-                                    createProperty(widget, ""),
-                            propIconType.createProperty(widget, MarkerIcon.DEFAULT)
-                    )), 0
+                    (widget, index) -> propMarker.createProperty(widget,
+                            markerProperties(widget, 0.0, 0.0, "Marker " + index, "", MarkerIcon.DEFAULT)
+                            ), 0
             );
 
     private volatile WidgetProperty<Boolean> items_from_pv;
@@ -90,20 +86,28 @@ public class MapWidget extends WritablePVWidget {
         return items_from_pv;
     }
 
-    public StructuredWidgetProperty addMarker(double lat, double lon, String display) throws Exception {
-        StructuredWidgetProperty newMarker = propMarker.createProperty(this, Arrays.asList(
-                CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.MISC, "lat", "Latitude")
-                        .createProperty(this, lat),
-                CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.MISC, "lon", "Longitude")
-                        .createProperty(this, lon),
-                CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.MISC, "name", "Name")
-                        .createProperty(this, "Marker " + (coords.size() + 1)),
-                CommonWidgetProperties.newFilenamePropertyDescriptor(WidgetPropertyCategory.MISC, "bob", "Display binding")
-                        .createProperty(this, display),
-                propIconType.createProperty(this, MarkerIcon.DEFAULT)
-        ));
+    public StructuredWidgetProperty addMarker(double lat, double lon, String display, String name) throws Exception {
+        StructuredWidgetProperty newMarker = propMarker.createProperty(this,
+                markerProperties(this, lat, lon, name, display, MarkerIcon.DEFAULT));
+
         coords.addElement(newMarker);
         return newMarker;
+    }
+
+
+    private static List<WidgetProperty<?>> markerProperties(Widget widget,
+                                                            double lat, double lon, String name, String display, MarkerIcon icon) {
+        return Arrays.asList(
+                CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.MISC, "lat", "Latitude")
+                        .createProperty(widget, lat),
+                CommonWidgetProperties.newDoublePropertyDescriptor(WidgetPropertyCategory.MISC, "lon", "Longitude")
+                        .createProperty(widget, lon),
+                CommonWidgetProperties.newStringPropertyDescriptor(WidgetPropertyCategory.MISC, "name", "Name")
+                        .createProperty(widget, name),
+                CommonWidgetProperties.newFilenamePropertyDescriptor(WidgetPropertyCategory.MISC, "bob", "Display binding")
+                        .createProperty(widget, display),
+                propIconType.createProperty(widget, icon)
+        );
     }
 
     public List<MarkerData> getMarkers() {
@@ -120,11 +124,37 @@ public class MapWidget extends WritablePVWidget {
         }
         return result;
     }
+
+    public MarkerData getMarker(int index) throws Exception {
+        List<StructuredWidgetProperty> markers = new ArrayList<>(coords.getValue());
+        List<WidgetProperty<?>> p = markers.get(index).getValue();
+        MarkerData marker = new MarkerData(
+                (Double) p.get(IDX_LAT).getValue(),
+                (Double) p.get(IDX_LON).getValue(),
+                (String) p.get(IDX_NAME).getValue(),
+                (String) p.get(IDX_BOB).getValue(),
+                (MarkerIcon) p.get(IDX_ICON).getValue()
+        );
+        return marker;
+    }
     
     public void removeMarker(int index) throws Exception {
         List<StructuredWidgetProperty> current = new ArrayList<>(coords.getValue());
         if (index < 0 || index >= current.size()) return;
         current.remove(index);
-            coords.setValue(current);
+        coords.setValue(current);
+    }
+
+    public void updateMarker(int index, String name, String display, MarkerIcon icon) throws Exception {
+        List<WidgetProperty<?>> props = coords.getValue().get(index).getValue();
+        ((WidgetProperty<String>) props.get(IDX_NAME)).setValue(name);
+        ((WidgetProperty<String>) props.get(IDX_BOB)).setValue(display);
+        ((WidgetProperty<MarkerIcon>) props.get(IDX_ICON)).setValue(icon);
+    }
+
+    public void updateMarkerPosition(int index, MarkerData marker) throws Exception {
+        List<WidgetProperty<?>> props = coords.getValue().get(index).getValue();
+        ((WidgetProperty<Double>) props.get(IDX_LAT)).setValue(marker.getPoint().getLatitude());
+        ((WidgetProperty<Double>) props.get(IDX_LON)).setValue(marker.getPoint().getLongitude());
     }
 }

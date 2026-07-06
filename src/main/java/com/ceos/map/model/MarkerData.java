@@ -20,6 +20,13 @@ public class MarkerData {
             this.displayPath = displayPath;
         }
 
+        public MarkerData(double lat, double lon){
+            this.point = new MapPoint(lat, lon);
+            this.name = null;
+            this.icon = null;
+            this.displayPath = null;
+        }
+
         public MapPoint getPoint() { return point; }
         public String getName() { return name; }
         public MarkerIcon getIconType() { return icon; }
