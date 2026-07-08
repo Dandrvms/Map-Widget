@@ -12,11 +12,30 @@ import javafx.scene.image.Image;
 
 public class LocalTileRetriever implements TileRetriever {
 
-    private static final String host = "http://172.28.41.114/hot/";
+    private static String host /*= "http://172.28.41.114/hot/"*/;
     private static final File cacheRoot = new File(System.getProperty("java.io.tmpdir"), ".gluonmaps");
 
     static {
         cacheRoot.mkdirs();
+    }
+
+    static final String httpAgent;
+
+    static {
+        String agent = System.getProperty("http.agent");
+        if (agent == null) {
+            agent = "(" + System.getProperty("os.name") + " / " + System.getProperty("os.version") + " / " + System.getProperty("os.arch") + ")";
+        }
+        httpAgent = "Gluon Maps/2.0.0 " + agent;
+        System.setProperty("http.agent", httpAgent);
+    }
+
+    public static void setHost(String url){
+        host = url;
+    }
+
+    public static String getHost(){
+        return host;
     }
 
     private static final ExecutorService executor = Executors.newFixedThreadPool(4, r -> {

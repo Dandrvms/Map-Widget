@@ -6,10 +6,7 @@ import com.ceos.map.ui.MapNode;
 import com.ceos.map.ui.MarkerDialog;
 import java.util.Optional;
 import javafx.application.Platform;
-import org.csstudio.display.builder.model.DirtyFlag;
-import org.csstudio.display.builder.model.StructuredWidgetProperty;
-import org.csstudio.display.builder.model.UntypedWidgetPropertyListener;
-import org.csstudio.display.builder.model.WidgetProperty;
+import org.csstudio.display.builder.model.*;
 import org.csstudio.display.builder.representation.javafx.widgets.JFXBaseRepresentation;
 
 /**
@@ -37,12 +34,13 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
         final MapWidget model = model_widget;
         final MapNode node = jfx_node;
 
-        int height = model_widget.propHeight().getValue();
-        int width = model_widget.propWidth().getValue();
+        int height = model.propHeight().getValue();
+        int width = model.propWidth().getValue();
 
         node.setPrefHeight(height);
         node.setPrefWidth(width);
-        node.setMarkers(model_widget.getMarkers());
+        node.setMarkers(model.getMarkers());
+        node.setHost(model.propHost().getValue());
 
     }
 
@@ -54,8 +52,8 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
 
         model.propWidth().addUntypedPropertyListener(contentChangedListener);
         model.propHeight().addUntypedPropertyListener(contentChangedListener);
-        node.setPrefSize(model.propWidth().getValue().doubleValue(), model.propHeight().getValue().doubleValue());
         model.propCoords().addUntypedPropertyListener(contentChangedListener);
+        model.propHost().addUntypedPropertyListener(contentChangedListener);
 
         attachListeners();
 
@@ -93,9 +91,13 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
 
             node.setOnMoveMarker((index, marker) -> Platform.runLater(() -> {
                 try{
-                    model_widget.updateMarkerPosition(index, marker);
+                    StructuredWidgetProperty updated = model_widget.updateMarkerPosition(index, marker);
+                    for (WidgetProperty<?> prop : updated.getValue()) {
+                        prop.addUntypedPropertyListener(markerListener);
+                    }
+                    dirty_look.mark();
                 } catch(Exception e) {
-
+                    System.getLogger(MapRepresentation.class.getName()).log(System.Logger.Level.ERROR, (String) null, e);
                 }
             }));
 
@@ -126,7 +128,6 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
     private void contentChanged(final WidgetProperty<?> prop, final Object old, Object val) {
         dirty_look.mark();
         toolkit.scheduleUpdate(this);
-        setupMarkers();
     }
 
     private void addMarkerToModel(double lat, double lon, String display, String name) throws Exception {

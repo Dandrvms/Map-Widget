@@ -29,6 +29,7 @@ package com.ceos.map.ui;
 
 import com.ceos.map.model.MarkerData;
 import com.ceos.map.model.PoiLayer;
+import com.ceos.map.server.LocalTileRetriever;
 import com.gluonhq.maps.MapPoint;
 import com.gluonhq.maps.MapView;
 
@@ -231,6 +232,7 @@ public class MapNode extends StackPane {
 
         marker.setOnMouseDragged((MouseEvent e) ->{
             if(!editMode) return;
+            if(e.getButton() != MouseButton.PRIMARY) return;
             e.consume();
             Point2D viewCoords = view.sceneToLocal(e.getSceneX(), e.getSceneY());
             MapPoint newPoint = view.getMapPosition(viewCoords.getX(), viewCoords.getY());
@@ -241,6 +243,7 @@ public class MapNode extends StackPane {
 
         marker.setOnMouseReleased(e -> {
             if (!editMode) return;
+            if(e.getButton() != MouseButton.PRIMARY) return;
             Point2D viewCoords = view.sceneToLocal(e.getSceneX(), e.getSceneY());
             MapPoint finalPoint = view.getMapPosition(viewCoords.getX(), viewCoords.getY());
             if (finalPoint != null){
@@ -282,6 +285,14 @@ public class MapNode extends StackPane {
 
     public void setOnMoveMarker(BiConsumer<Integer, MarkerData> callback){
         this.onMoveMarker = callback;
+    }
+
+    public void setHost(String url){
+        LocalTileRetriever.setHost(url);
+    }
+
+    public String getHost(){
+        return LocalTileRetriever.getHost();
     }
 
     public void dispose() {
