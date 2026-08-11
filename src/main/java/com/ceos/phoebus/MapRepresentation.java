@@ -20,7 +20,8 @@ public class MapRepresentation extends JFXBaseRepresentation<MapNode, MapWidget>
     private DirtyFlag dirty_look = new DirtyFlag();
 
     private final UntypedWidgetPropertyListener contentChangedListener = this::contentChanged;
-    private final UntypedWidgetPropertyListener markerListener = (prop, old, val) -> setupMarkers();
+    private final UntypedWidgetPropertyListener markerListener = (prop, old, val) -> Platform.runLater(this::setupMarkers);
+
 
     @Override
     protected MapNode createJFXNode() throws Exception {

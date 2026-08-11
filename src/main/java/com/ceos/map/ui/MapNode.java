@@ -37,8 +37,10 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
 
+import javafx.event.Event;
 import javafx.geometry.Point2D;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.StackPane;
 
 import java.util.logging.Level;
@@ -97,6 +99,19 @@ public class MapNode extends StackPane {
         this.setPickOnBounds(true);
         this.setPrefSize(400, 400);
         view.addLayer(markerLayer);
+        view.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> {
+            if (editMode) e.consume();
+            if (addMenu.isShowing()) {
+                addMenu.hide();
+            }
+            if (editMenu.isShowing()) {
+                editMenu.hide();
+            }
+        });
+
+        view.addEventHandler(ScrollEvent.SCROLL, e -> {
+            if (editMode) e.consume();
+        });
 
         // Venezuela
         MapPoint country = new MapPoint(7.0, -66.0);
@@ -211,7 +226,7 @@ public class MapNode extends StackPane {
         marker.setOnMouseClicked(e -> {
 
             if (e.getButton() == MouseButton.PRIMARY) {
-
+                if(editMode) return;
                 if (e.getClickCount() == 2) {
                     marker.openDisplay(this.widget);
                 } else {

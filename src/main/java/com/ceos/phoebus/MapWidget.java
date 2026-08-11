@@ -84,7 +84,7 @@ public class MapWidget extends WritablePVWidget {
     @Override
     protected void defineProperties(final List<WidgetProperty<?>> properties) {
         super.defineProperties(properties);
-        properties.add(coords = propCoords.createProperty(this, Arrays.asList()));
+        properties.add(coords = new MarkersProperty(propCoords, this, Arrays.asList()));
         properties.add(host = propHost.createProperty(this, "http://172.28.41.114/hot/"));
     }
 
@@ -194,5 +194,15 @@ public class MapWidget extends WritablePVWidget {
         coords.setValue(markers);
 
         return edited;
+    }
+
+    public static class MarkersProperty extends ArrayWidgetProperty<StructuredWidgetProperty> {
+        protected MarkersProperty(Descriptor<StructuredWidgetProperty> descriptor, Widget widget, List<StructuredWidgetProperty> value) {
+            super(descriptor, widget, value);
+        }
+        @Override
+        public boolean isDefaultValue(){
+            return getValue().isEmpty();
+        }
     }
 }
