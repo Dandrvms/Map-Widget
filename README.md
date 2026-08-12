@@ -2,6 +2,8 @@
 
 This widget provides an interactive map for the [Phoebus Control System Studio](https://github.com/ControlSystemStudio/phoebus), allowing users to place markers and open related displays directly from the map interface.
 
+For usage instructions in Phoebus, see [instructions.md](https://github.com/dandrvms/map-widget/blob/main/instructions.md) or spanish version [instrucciones.md](https://github.com/dandrvms/map-widget/blob/main/instrucciones.md) .
+
 ## Prerequisites
 
 - **Java JDK 21** (must match your Phoebus installation version)
