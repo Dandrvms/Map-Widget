@@ -223,6 +223,10 @@ public class MapNode extends StackPane {
         marker.setDisplay(point.getDisplayPath());
         marker.setUserData(index);
 
+        boolean[] dragged = { false };
+
+        marker.setOnMousePressed(e -> dragged[0] = false);
+
         marker.setOnMouseClicked(e -> {
 
             if (e.getButton() == MouseButton.PRIMARY) {
@@ -253,12 +257,14 @@ public class MapNode extends StackPane {
             MapPoint newPoint = view.getMapPosition(viewCoords.getX(), viewCoords.getY());
             if(newPoint != null){
                 markerLayer.updatePosition(marker, newPoint);
+                dragged[0] = true;
             }
         });
 
         marker.setOnMouseReleased(e -> {
             if (!editMode) return;
             if(e.getButton() != MouseButton.PRIMARY) return;
+            if(!dragged[0]) return;
             Point2D viewCoords = view.sceneToLocal(e.getSceneX(), e.getSceneY());
             MapPoint finalPoint = view.getMapPosition(viewCoords.getX(), viewCoords.getY());
             if (finalPoint != null){
